@@ -193,3 +193,50 @@ Mutual info I(s; z_skill) 替代 external reward.
 3. 需要特定数据 (Flow-VAE, Guided LDM)
 
 **我们的 v11 = Flow-VAE + Asymmetric SP 是原创组合**, 用 Asymmetric SP 生成 (z_prior, z_collision) 数据对, 用 Flow-VAE 的结构学分布变换。这个组合在已有论文中没有先例, 但组成部分各自有论文支撑。
+
+---
+
+## 9. 参考文献 (含 arXiv 链接)
+
+### 对抗轨迹生成
+
+| # | 标题 | 作者 | 会议/年份 | arXiv |
+|---|------|------|----------|-------|
+| 1 | Generating Useful Accident-Prone Driving Scenarios via a Learned Traffic Prior (STRIVE) | Rempe et al. | CVPR 2022 | [2112.05077](https://arxiv.org/abs/2112.05077) |
+| 2 | Conditional Flow-VAE for Safety-Critical Traffic Scenario Generation | Gong et al. (Waabi) | ICRA 2026 | [2605.04366](https://arxiv.org/abs/2605.04366) |
+| 3 | Safety-Critical Traffic Simulation with Guided Latent Diffusion Model | Peng et al. | 2025 | [2505.00515](https://arxiv.org/abs/2505.00515) |
+| 4 | Safety-Critical Scenario Generation via Reinforcement Learning Based Editing | Liu et al. | 2023 | [2306.14131](https://arxiv.org/abs/2306.14131) |
+| 5 | ADV-0: Closed-Loop Min-Max Adversarial Training for Long-Tail Robustness | Nie et al. | 2026 | [2603.15221](https://arxiv.org/abs/2603.15221) |
+| 6 | STRELGen: Guiding Neuro-Symbolic Scenario Generation with Spatio-Temporal Logic | Bonin et al. | 2026 | [2605.19038](https://arxiv.org/abs/2605.19038) |
+| 7 | KG-ASG: Collision-Knowledge-Guided Closed-Loop Adversarial Scenario Generation | Wang et al. | 2026 | [2605.18895](https://arxiv.org/abs/2605.18895) |
+| 8 | Controllable Risk Scenario Generation from Human Crash Data (CRAG) | Lu et al. | 2025 | [2512.07874](https://arxiv.org/abs/2512.07874) |
+| 9 | Dynasto: Validity-Aware Dynamic-Static Parameter Optimization for AD Testing | Humeniuk et al. | 2026 | [2603.21427](https://arxiv.org/abs/2603.21427) |
+| 10 | Scenario Dreamer: Vectorized Latent Diffusion for Generating Driving Simulation | Rowe et al. | CVPR 2025 | [2503.22496](https://arxiv.org/abs/2503.22496) |
+
+### Self-Play / Multi-Agent / RL
+
+| # | 标题 | 作者 | 会议/年份 | arXiv |
+|---|------|------|----------|-------|
+| 11 | Learning to Drive via Asymmetric Self-Play | Zhang et al. (Waabi) | 2024 | [2409.18218](https://arxiv.org/abs/2409.18218) |
+| 12 | Robust Autonomy Emerges from Self-Play (Gigaflow) | Cusumano-Towner et al. | ICML 2025 | [2502.03349](https://arxiv.org/abs/2502.03349) |
+| 13 | Improving Human-AI Coordination through Online Adversarial Training (GOAT) | Chaudhary et al. | 2025 | [2504.15457](https://arxiv.org/abs/2504.15457) |
+| 14 | Diversity is All You Need: Learning Skills without a Reward Function (DIAYN) | Eysenbach et al. | ICLR 2019 | [1802.06070](https://arxiv.org/abs/1802.06070) |
+| 15 | Heterogeneous Adversarial Play in Interactive Environments (HAP) | Xu et al. | NeurIPS 2025 | [2510.18407](https://arxiv.org/abs/2510.18407) |
+
+### 驾驶仿真 / 数据增强
+
+| # | 标题 | 作者 | 会议/年份 | arXiv |
+|---|------|------|----------|-------|
+| 16 | SimScale: Learning to Drive via Real-World Simulation at Scale | Tian et al. | CVPR 2026 Oral | [2511.23369](https://arxiv.org/abs/2511.23369) |
+| 17 | SceneDiffuser++: City-Scale Traffic Simulation via a Generative World Model | Tan et al. | CVPR 2025 | [2506.21976](https://arxiv.org/abs/2506.21976) |
+| 18 | Reinforced Refinement with Self-Aware Expansion (R2SE) | Liu et al. | 2025 | [2506.09800](https://arxiv.org/abs/2506.09800) |
+
+### RL 基础方法
+
+| # | 标题 | 作者 | 会议/年份 | 链接 |
+|---|------|------|----------|------|
+| 19 | Simple Statistical Gradient-Following Algorithms for Connectionist RL (REINFORCE) | Williams | 1992 | — |
+| 20 | Mixture Density Networks (MDN) | Bishop | 1994 | — |
+| 21 | Asynchronous Methods for Deep Reinforcement Learning (A3C) | Mnih et al. | ICML 2016 | [1602.01783](https://arxiv.org/abs/1602.01783) |
+| 22 | Reinforcement Learning: An Introduction | Sutton & Barto | 1998 | — |
+| 23 | Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space (CMA-ME) | Fontaine et al. | GECCO 2020 | [1912.02400](https://arxiv.org/abs/1912.02400) |

@@ -170,14 +170,14 @@
 
 | 类别 | 代表论文 | 核心方法 | 如何解决 0.5% 瓶颈? |
 |------|---------|---------|---------------------|
-| **Gradient opt** | STRIVE (Rempe 2022) | ∇_z 优化 | 梯度直达, 不需要 RL |
-| **Latent diffusion** | Guided LDM (Peng 2025) | Graph VAE + diffusion + guidance | 用 nuScenes 开放数据 |
-| **Flow matching** | Flow-VAE (Waabi ICRA 2026) | Flow transform z_nominal→z_critical | **不需要, 但有 500+10K 碰撞数据** |
-| **RL editing** | Liu et al. 2023 | RL 序列编辑场景 | 用 VAE 约束 realism |
-| **Min-max** | ADV-0 (Nie 2026) | Zero-sum game, Nash eq | closed-loop sim |
-| **GOAT** | Chaudhary 2025 | Frozen VAE + RL latent search | **不需要, 100% latent coverage** |
-| **Asymmetric SP** | Waabi 2024 | Teacher-Student scenario generation | 自对弈 curriculum |
-| **Gigaflow PPO** | Cusumano-Towner ICML 2025 | PPO + 10^12 transitions + dense reward | Scale + dense reward |
+| **Gradient opt** | STRIVE (Rempe et al., CVPR 2022) [[2112.05077](https://arxiv.org/abs/2112.05077)] | ∇_z 优化 | 梯度直达, 不需要 RL |
+| **Latent diffusion** | Guided LDM (Peng et al., 2025) [[2505.00515](https://arxiv.org/abs/2505.00515)] | Graph VAE + diffusion + guidance | 用 nuScenes 开放数据 |
+| **Flow matching** | Flow-VAE (Gong et al., Waabi, ICRA 2026) [[2605.04366](https://arxiv.org/abs/2605.04366)] | Flow transform z_nominal→z_critical | **不需要, 但有 500+10K 碰撞数据** |
+| **RL editing** | Liu et al., 2023 [[2306.14131](https://arxiv.org/abs/2306.14131)] | RL 序列编辑场景 | 用 VAE 约束 realism |
+| **Min-max** | ADV-0 (Nie et al., 2026) [[2603.15221](https://arxiv.org/abs/2603.15221)] | Zero-sum game, Nash eq | closed-loop sim |
+| **GOAT** | Chaudhary et al., 2025 [[2504.15457](https://arxiv.org/abs/2504.15457)] | Frozen VAE + RL latent search | **不需要, 100% latent coverage** |
+| **Asymmetric SP** | Zhang et al., Waabi, 2024 [[2409.18218](https://arxiv.org/abs/2409.18218)] | Teacher-Student scenario generation | 自对弈 curriculum |
+| **Gigaflow PPO** | Cusumano-Towner et al., ICML 2025 [[2502.03349](https://arxiv.org/abs/2502.03349)] | PPO + 10^12 transitions + dense reward | Scale + dense reward |
 
 ### 8.2 关键发现: 文献中没有直接答案
 
@@ -190,9 +190,9 @@
 
 **没有任何一篇论文做 "RL policy directly outputs 32D latent z to generate adversarial trajectories"。** 我们的 v3-v10 走在地图上没有标注的区域。
 
-### 8.3 GOAT (Chaudhary et al., 2025) 深度分析
+### 8.3 GOAT (Chaudhary et al., 2025)
 
-**"Improving Human-AI Coordination through GOAT"**
+**"Improving Human-AI Coordination through GOAT"** [[2504.15457](https://arxiv.org/abs/2504.15457)]
 
 - **核心**: Frozen VAE + RL adversary 搜索 latent space
 - **Adversary πA(z) → z'**: 在 latent 空间搜索让 Cooperator regret 最大的 partner
@@ -211,9 +211,9 @@ v10:   π(obs, g) → z → frozen decoder → trajectory → collision reward
 - RL policy 搜 latent space → 但不能搜全部 32D, 改为搜 **Δz ∈ bounded ball** (缩小探索)
 - 不需要额外 realism loss (decoder 冻结 = realism constraint)
 
-### 8.4 Flow-VAE (Waabi, ICRA 2026) 深度分析
+### 8.4 Flow-VAE (Gong et al., Waabi, ICRA 2026)
 
-**"Conditional Flow-VAE for Safety-Critical Traffic Scenario Generation"**
+**"Conditional Flow-VAE for Safety-Critical Traffic Scenario Generation"** [[2605.04366](https://arxiv.org/abs/2605.04366)]
 
 - **两阶段**: (1) CVAE 在 mixed data 上训 → (2) Flow model 学 z_nominal → z_critical
 - **数据**: 500 real + 10K sim paired scenarios (in-house Waabi fleet)
@@ -287,3 +287,80 @@ Phase 3 (Inference):
 | Pure Flow-VAE | n/a | ✅ | ✅ | ❌(需碰撞数据) | Waabi 2026 |
 | GOAT direct | ✅ | ✅ | 低 | ✅ | Chaudhary 2025 |
 | Guided LDM | n/a | ✅ | ✅ | ⚠️(需nuScenes) | Peng 2025 |
+
+---
+
+## 参考文献
+
+### 对抗轨迹生成
+
+1. **STRIVE**: David Rempe, Jonah Philion, Leonidas J. Guibas, Sanja Fidler, Or Litany. "Generating Useful Accident-Prone Driving Scenarios via a Learned Traffic Prior." CVPR 2022.
+   - arXiv: [2112.05077](https://arxiv.org/abs/2112.05077)
+
+2. **Flow-VAE**: Zimu Gong, Brian Zhaoning Zhang, Chris Zhang, Kelvin Wong, Raquel Urtasun. "Conditional Flow-VAE for Safety-Critical Traffic Scenario Generation." ICRA 2026.
+   - arXiv: [2605.04366](https://arxiv.org/abs/2605.04366)
+
+3. **Guided LDM**: Mingxing Peng, Ruoyu Yao, Xusen Guo, Yuting Xie, Xianda Chen, Jun Ma. "Safety-Critical Traffic Simulation with Guided Latent Diffusion Model." 2025.
+   - arXiv: [2505.00515](https://arxiv.org/abs/2505.00515)
+
+4. **RL-based Editing**: Haolan Liu, Liangjun Zhang, Siva Kumar Sastry Hari, Jishen Zhao. "Safety-Critical Scenario Generation via Reinforcement Learning Based Editing." 2023.
+   - arXiv: [2306.14131](https://arxiv.org/abs/2306.14131)
+
+5. **ADV-0**: Tong Nie, Yihong Tang, Junlin He, Yuewen Mei, Jie Sun, Lijun Sun, Wei Ma, Jian Sun. "ADV-0: Closed-Loop Min-Max Adversarial Training for Long-Tail Robustness in Autonomous Driving." 2026.
+   - arXiv: [2603.15221](https://arxiv.org/abs/2603.15221)
+
+6. **STRELGen**: Lorenzo Bonin, Francesco Giacomarra, Luca Bortolussi, Jyotirmoy V. Deshmukh, Francesca Cairoli. "Guiding Neuro-Symbolic Scenario Generation with Spatio-Temporal Logic." 2026.
+   - arXiv: [2605.19038](https://arxiv.org/abs/2605.19038)
+
+7. **KG-ASG**: Cheng Wang, Chen Xiong, Ziwen Wang, Yuchen Zhou, Qiang Liu. "KG-ASG: Collision-Knowledge-Guided Closed-Loop Adversarial Scenario Generation With Primary-Support Attribution." 2026.
+   - arXiv: [2605.18895](https://arxiv.org/abs/2605.18895)
+
+8. **CRAG**: Qiujing Lu, Xuanhan Wang, Runze Yuan, Wei Lu, Xinyi Gong, Shuo Feng. "Controllable Risk Scenario Generation from Human Crash Data for Autonomous Vehicle Testing." 2025.
+   - arXiv: [2512.07874](https://arxiv.org/abs/2512.07874)
+
+9. **Dynasto**: Dmytro Humeniuk, Mohammad Hamdaqa, Houssem Ben Braiek, Amel Bennaceur, Foutse Khomh. "Dynasto: Validity-Aware Dynamic-Static Parameter Optimization for Autonomous Driving Testing." 2026.
+   - arXiv: [2603.21427](https://arxiv.org/abs/2603.21427)
+
+10. **Scenario Dreamer**: Luke Rowe, Roger Girgis, Anthony Gosselin, Liam Paull, Christopher Pal, Felix Heide. "Scenario Dreamer: Vectorized Latent Diffusion for Generating Driving Simulation Environments." CVPR 2025.
+    - arXiv: [2503.22496](https://arxiv.org/abs/2503.22496)
+
+### Self-Play / Multi-Agent / RL
+
+11. **Asymmetric Self-Play**: Chris Zhang, Sourav Biswas, Kelvin Wong, Kion Fallah, Lunjun Zhang, Dian Chen, Sergio Casas, Raquel Urtasun. "Learning to Drive via Asymmetric Self-Play." Waabi 2024.
+    - arXiv: [2409.18218](https://arxiv.org/abs/2409.18218)
+
+12. **Gigaflow**: Marco Cusumano-Towner, David Hafner, Alex Hertzberg, Brody Huval, Aleksei Petrenko, Eugene Vinitsky, Erik Wijmans, Taylor Killian, Stuart Bowers, Ozan Sener, Philipp Krähenbühl, Vladlen Koltun. "Robust Autonomy Emerges from Self-Play." ICML 2025.
+    - arXiv: [2502.03349](https://arxiv.org/abs/2502.03349)
+
+13. **GOAT**: Paresh Chaudhary, Yancheng Liang, Daphne Chen, Simon S. Du, Natasha Jaques. "Improving Human-AI Coordination through Online Adversarial Training and Generative Models." 2025.
+    - arXiv: [2504.15457](https://arxiv.org/abs/2504.15457)
+
+14. **DIAYN**: Benjamin Eysenbach, Abhishek Gupta, Julian Ibarz, Sergey Levine. "Diversity is All You Need: Learning Skills without a Reward Function." ICLR 2019.
+    - arXiv: [1802.06070](https://arxiv.org/abs/1802.06070)
+
+15. **HAP**: Manjie Xu, Xinyi Yang, Jiayu Zhan, Wei Liang, Chi Zhang, Yixin Zhu. "Heterogeneous Adversarial Play in Interactive Environments." NeurIPS 2025.
+    - arXiv: [2510.18407](https://arxiv.org/abs/2510.18407)
+
+### 驾驶仿真 / 数据增强
+
+16. **SimScale**: Haochen Tian, Tianyu Li, Haochen Liu, Jiazhi Yang, et al. "SimScale: Learning to Drive via Real-World Simulation at Scale." CVPR 2026 Oral.
+    - arXiv: [2511.23369](https://arxiv.org/abs/2511.23369)
+
+17. **SceneDiffuser++**: Shuhan Tan, John Lambert, Hong Jeon, et al. "SceneDiffuser++: City-Scale Traffic Simulation via a Generative World Model." CVPR 2025.
+    - arXiv: [2506.21976](https://arxiv.org/abs/2506.21976)
+
+18. **R2SE**: Haochen Liu, Tianyu Li, Haohan Yang, et al. "Reinforced Refinement with Self-Aware Expansion for End-to-End Autonomous Driving." 2025.
+    - arXiv: [2506.09800](https://arxiv.org/abs/2506.09800)
+
+### RL 基础方法
+
+19. **REINFORCE**: Ronald J. Williams. "Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning." Machine Learning, 1992.
+
+20. **MDN**: Christopher M. Bishop. "Mixture Density Networks." 1994.
+
+21. **A3C**: Volodymyr Mnih et al. "Asynchronous Methods for Deep Reinforcement Learning." ICML 2016.
+    - arXiv: [1602.01783](https://arxiv.org/abs/1602.01783)
+
+22. **Sutton & Barto**: "Reinforcement Learning: An Introduction." 1998. (Continuous reward, Chapter 3)
+23. **PGA-ME**: Matthew C. Fontaine, Stefanos Nikolaidis. "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space." GECCO 2020.
+    - arXiv: [1912.02400](https://arxiv.org/abs/1912.02400)
