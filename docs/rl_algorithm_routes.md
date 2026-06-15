@@ -165,6 +165,7 @@ Mutual info I(s; z_skill) 替代 external reward.
 | **I** | **Flow-VAE + Asymmetric SP** | ✅ | ✅ | **高 (预期)** | **可扩展** | **Waabi 2026 + Waabi 2024 + GOAT 2025** | **主路线** |
 | J | Guided LDM | n/a | ✅ | ✅ | ⚠️ | Peng 2025 | 待评估 |
 | K | GOAT-style Δz | ✅ | ✅ | 低 (latent coverage low) | ❌ | Chaudhary 2025 | 已放弃 |
+| L | QD Distillation (DCG-ME) | ✅ | ✅ | ✅ (archive→policy) | ✅ (descriptor-conditioned) | Faldor 2023 + Hegde 2023 | 待调研 |
 
 ---
 
@@ -193,6 +194,22 @@ Mutual info I(s; z_skill) 替代 external reward.
 3. 需要特定数据 (Flow-VAE, Guided LDM)
 
 **我们的 v11 = Flow-VAE + Asymmetric SP 是原创组合**, 用 Asymmetric SP 生成 (z_prior, z_collision) 数据对, 用 Flow-VAE 的结构学分布变换。这个组合在已有论文中没有先例, 但组成部分各自有论文支撑。
+
+### 附加发现: QD-RL Policy 架构调研
+
+**问题: QD-RL 论文的 policy 如何支持多样性输出?**
+
+| 论文 | Policy 架构 | 多样性机制 |
+|------|-----------|-----------|
+| DCG-MAP-Elites | `π(a\|s, bd)` — 单网络, bd descriptor 作输入 | conditioning, 不是 sampling |
+| Policy Diffusion | Diffusion over policy params, cond. on bd | conditioning |
+| PGA-MAP-Elites | `π(a\|s, bd)` — 单网络 | conditioning |
+| PPGA | `π(a\|s, bd)` — PPO policy | conditioning |
+| SV-QD-RL (2026) | 多 branch, structural mask | branch 隔离 |
+| 我们的 v10 | Mixture K=4 MoG heads | stochastic sampling |
+| 我们的 PGA-ME | `π(a\|s, bd_onehot)` — ConditionalGaussianPolicy | conditioning (与 QD-RL 一致) |
+
+**没有任何 QD-RL 论文使用 MoG head。** 多样性来自 descriptor conditioning (输入空间), 不是 sampling (输出空间)。
 
 ---
 
@@ -240,3 +257,13 @@ Mutual info I(s; z_skill) 替代 external reward.
 | 21 | Asynchronous Methods for Deep Reinforcement Learning (A3C) | Mnih et al. | ICML 2016 | [1602.01783](https://arxiv.org/abs/1602.01783) |
 | 22 | Reinforcement Learning: An Introduction | Sutton & Barto | 1998 | — |
 | 23 | Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space (CMA-ME) | Fontaine et al. | GECCO 2020 | [1912.02400](https://arxiv.org/abs/1912.02400) |
+
+### QD-RL (Quality Diversity + RL)
+
+| # | 标题 | 作者 | 会议/年份 | arXiv |
+|---|------|------|----------|-------|
+| 24 | MAP-Elites with Descriptor-Conditioned Gradients and Archive Distillation into a Single Policy (DCG-ME) | Faldor et al. | 2023 | [2303.03832](https://arxiv.org/abs/2303.03832) |
+| 25 | Generating Behaviorally Diverse Policies with Latent Diffusion Models | Hegde et al. | 2023 | [2305.18738](https://arxiv.org/abs/2305.18738) |
+| 26 | Proximal Policy Gradient Arborescence for QD-RL (PPGA) | Batra et al. | ICLR 2024 Spotlight | [2305.13795](https://arxiv.org/abs/2305.13795) |
+| 27 | AutoQD: Automatic Discovery of Diverse Behaviors with QD Optimization | Hedayatian et al. | ICLR 2026 | [2506.05634](https://arxiv.org/abs/2506.05634) |
+| 28 | Structure-Conditioned Actor-Critic Branches for QD-RL (SV-QD-RL) | Zuo et al. | 2026 | [2606.08735](https://arxiv.org/abs/2606.08735) |

@@ -226,6 +226,71 @@ v10:   π(obs, g) → z → frozen decoder → trajectory → collision reward
 
 **但前提是成对碰撞数据。** 没有这些数据, flow model 不知道往哪个方向推 z。
 
+### 8.5 QD-RL 方法论调研 (2026-06-15)
+
+> 问题: QD-RL 领域有哪些新方法论? policy 如何设计以支持跨场景泛化和多解?
+
+#### 8.5.1 核心论文
+
+**DCG-MAP-Elites** (Faldor et al., 2023) [[2303.03832](https://arxiv.org/abs/2303.03832)]
+- Descriptor-conditioned critic → 在整个 BD 空间上优化, 避免 PGA-ME 的 descriptor collapse
+- **Archive distillation into single policy**: actor-critic 训练过程同时蒸馏 archive → policy(bd) 可执行全部行为
+- 算法: TD3 + descriptor-conditioned actor + critic
+- 相对 PGA-ME 提升 82%
+
+**Policy Diffusion** (Hegde et al., 2023) [[2305.18738](https://arxiv.org/abs/2305.18738)]
+- 用 VAE + latent diffusion 压缩 QD archive → 单生成模型
+- 压缩比 13x, 98% reward recovery, 89% coverage
+- Conditioning: 行为 descriptor 或自然语言
+
+**PPGA** (Batra et al., ICLR 2024 Spotlight) [[2305.13795](https://arxiv.org/abs/2305.13795)]
+- PPO 适配 DQD 框架, 4x improvement over baselines
+- 第一个 on-policy QD-RL 方法
+
+**AutoQD** (Hedayatian et al., ICLR 2026) [[2506.05634](https://arxiv.org/abs/2506.05634)]
+- 自动生成行为描述子 (MMD between occupancy measures), 不需要手工设计
+- 开源: github.com/conflictednerd/autoqd-code
+
+**SV-QD-RL** (Zuo et al., 2026) [[2606.08735](https://arxiv.org/abs/2606.08735)]
+- Structure-conditioned branches: 每个 candidate 有独立的 structural mask + critic
+- Branch-aware QD archive
+
+#### 8.5.2 Policy 架构设计调研
+
+**问题: QD-RL 论文的 policy 如何支持多样性输出? 是否使用 MoG head?**
+
+| 论文 | Policy 架构 | 多样性机制 |
+|------|-----------|-----------|
+| **DCG-MAP-Elites** | `π(a\|s, bd)` — 单网络, bd 作为输入 | 不同 bd → 不同输出 (deterministic conditioning) |
+| **Policy Diffusion** | Diffusion over policy params, conditioned on bd | Conditioning |
+| **PGA-MAP-Elites** | `π(a\|s, bd)` — 单网络 | 不同 bd → 不同输出 |
+| **PPGA** | `π(a\|s, bd)` — PPO policy | 不同 bd → 不同输出 |
+| **SV-QD-RL** | 多 branch, 各带 structural mask | Branch 间结构隔离 |
+| **我们的 v10** | Mixture K=4 MoG heads | Sample mode k (stochastic) |
+| **我们的 PGA-ME** | `π(a\|s, bd_onehot)` — ConditionalGaussianPolicy | 不同 bd_onehot → 不同 μ,σ |
+
+**关键发现**:
+1. **没有任何 QD-RL 论文使用 MoG head** — 全部用 bd-descriptor conditioning
+2. 多样性来自**输入 space** (descriptor), 不是**输出 space** (sampling)
+3. 我们 PGA-ME 里已有的 `ConditionalGaussianPolicy(obs, bd_onehot) → (μ, σ)` 和 QD-RL 标准范式一致
+4. v10 的 MoG 设计偏离了 QD-RL 的主流方法论
+
+#### 8.5.3 对我们路线的潜在影响
+
+**独立路线 K (QD Distillation)**: 与 Flow-VAE + Asymmetric SP 并行考虑
+
+```
+PGA-ME (已有) + DCG 扩展:
+  → 多 scene 上训 better QD archive (DCG's descriptor-conditioned critic)
+  → 蒸馏 archive → π(obs, bd_cell_g) → z
+  → 新 scene 推理: π(obs_new, g=2) → z → 攻击轨迹
+
+与 Flow-VAE + Asymmetric SP 的关系:
+  共同点: 都需要 per-scene 的数据 (z solutions)
+  区别: QD 路线用 archive 蒸馏, Flow-VAE 路线用 flow matching
+  可组合: QD generate data → Flow model learn distribution
+```
+
 ---
 
 ## 9. 方向修正 (2026-06-15, 更新于同日深夜)
@@ -352,15 +417,33 @@ Phase 3 (Inference):
 18. **R2SE**: Haochen Liu, Tianyu Li, Haohan Yang, et al. "Reinforced Refinement with Self-Aware Expansion for End-to-End Autonomous Driving." 2025.
     - arXiv: [2506.09800](https://arxiv.org/abs/2506.09800)
 
+### QD-RL (Quality Diversity Reinforcement Learning)
+
+24. **DCG-MAP-Elites**: Maxence Faldor, Félix Chalumeau, Manon Flageat, Antoine Cully. "MAP-Elites with Descriptor-Conditioned Gradients and Archive Distillation into a Single Policy." 2023.
+    - arXiv: [2303.03832](https://arxiv.org/abs/2303.03832)
+
+25. **Policy Diffusion**: Shashank Hegde, Sumeet Batra, K. R. Zentner, Gaurav S. Sukhatme. "Generating Behaviorally Diverse Policies with Latent Diffusion Models." 2023.
+    - arXiv: [2305.18738](https://arxiv.org/abs/2305.18738)
+
+26. **PPGA**: Sumeet Batra, Bryon Tjanaka, Matthew C. Fontaine, Aleksei Petrenko, Stefanos Nikolaidis, Gaurav Sukhatme. "Proximal Policy Gradient Arborescence for Quality Diversity Reinforcement Learning." ICLR 2024 Spotlight.
+    - arXiv: [2305.13795](https://arxiv.org/abs/2305.13795)
+
+27. **AutoQD**: Saeed Hedayatian, Stefanos Nikolaidis. "AutoQD: Automatic Discovery of Diverse Behaviors with Quality-Diversity Optimization." ICLR 2026.
+    - arXiv: [2506.05634](https://arxiv.org/abs/2506.05634)
+
+28. **SV-QD-RL**: Lianrong Zuo, Peilan Xu, Yong Liu, Wenjian Luo. "Structure-Conditioned Actor-Critic Branches for Quality-Diversity Reinforcement Learning." 2026.
+    - arXiv: [2606.08735](https://arxiv.org/abs/2606.08735)
+
 ### RL 基础方法
 
-19. **REINFORCE**: Ronald J. Williams. "Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning." Machine Learning, 1992.
+29. **REINFORCE**: Ronald J. Williams. "Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning." Machine Learning, 1992.
 
-20. **MDN**: Christopher M. Bishop. "Mixture Density Networks." 1994.
+30. **MDN**: Christopher M. Bishop. "Mixture Density Networks." 1994.
 
-21. **A3C**: Volodymyr Mnih et al. "Asynchronous Methods for Deep Reinforcement Learning." ICML 2016.
+31. **A3C**: Volodymyr Mnih et al. "Asynchronous Methods for Deep Reinforcement Learning." ICML 2016.
     - arXiv: [1602.01783](https://arxiv.org/abs/1602.01783)
 
-22. **Sutton & Barto**: "Reinforcement Learning: An Introduction." 1998. (Continuous reward, Chapter 3)
-23. **PGA-ME**: Matthew C. Fontaine, Stefanos Nikolaidis. "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space." GECCO 2020.
+32. **Sutton & Barto**: "Reinforcement Learning: An Introduction." 1998.
+
+33. **PGA-ME / CMA-ME**: Matthew C. Fontaine, Stefanos Nikolaidis. "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space." GECCO 2020.
     - arXiv: [1912.02400](https://arxiv.org/abs/1912.02400)
