@@ -289,9 +289,69 @@ PGA-ME (已有) + DCG 扩展:
   共同点: 都需要 per-scene 的数据 (z solutions)
   区别: QD 路线用 archive 蒸馏, Flow-VAE 路线用 flow matching
   可组合: QD generate data → Flow model learn distribution
+
+### 8.6 安全关键领域多样性轨迹生成调研 (2026-06-16)
+
+> 问题: safety-critical 领域是否有 diversity trajectory generation 论文? 多样性如何定义?
+
+#### 8.6.1 核心论文
+
+**BeyondDrive** (Wang et al., 2026) [[2605.19771](https://arxiv.org/abs/2605.19771)]
+- Flow matching-based negative trajectory generator → 合成 safety-critical + expert-proximate 轨迹
+- **Diversity-aware sampling strategy**: CFG (Classifier-Free Guidance) + noise scaling → 生成 diverse 的 hard negative trajectories
+- Repulsive Distance Loss: 吸引到 expert, 排斥 hard negative
+- Diversity 定义: **coverage of diverse failure modes** — 不同几何碰撞模式
+
+**OMEGA** (Li et al., 2025) [[2512.07661](https://arxiv.org/abs/2512.07661)]
+- Optimization-guided diffusion for diverse multi-agent scenes
+- **Game-theoretic ego-attacker interactions**: Nash equilibrium in **distribution space** (不是单点)
+- 训练-free 框架: re-anchor denoising steps via constrained optimization
+- Valid scenes: 11% → 80%, 5x more near-collision frames
+- Diversity 定义: **场景级物理+行为多样性** (N-Dist/L-Dev/A-Dev JSD distributions, TTC profiles)
+
+**COLLIDE** (Chen et al., 2025) [[2510.12206](https://arxiv.org/abs/2510.12206)]
+- Controllable collision scenario generation via collision pattern prediction
+- **5 collision types**: lane change, opposite direction, rear end, junction crossing, LTAP
+- Collision Pattern: compact spatial configuration of ego + attacker at impact → rollout trajectory
+- 直接引用 C-STRIVE 作为 baseline
+- Diversity 定义: **预定义碰撞类别 conditioning** — 最直接对应我们的 BD cell
+
+**ScenGE** (Liu et al., 2025) [[2508.14527](https://arxiv.org/abs/2508.14527)]
+- LLM reasoning + adversarial collaborator graph → diverse failure modes
+- Meta-Scenario Generation → Complex Scenario Evolution (amplify core threat)
+- Diversity 定义: **场景层面** — 不同威胁类型 + 交通流拓扑
+
+#### 8.6.2 Diversity 定义总结
+
+| 论文 | Diversity 是什么 | 如何实现 | 和我们的 BD cell 对应? |
+|------|-----------------|---------|:---:|
+| **BeyondDrive** | 不同 failure mode 的覆盖 | CFG + noise scaling | 间接 (不同碰撞几何) |
+| **OMEGA** | 场景级物理+行为分布多样性 | Game-theoretic Nash eq | 间接 (场景多样性) |
+| **COLLIDE** | 5 collision types | Collision pattern conditioning | **直接对应!** (BD cell ≈ collision type) |
+| **ScenGE** | 不同威胁场景类型 | LLM + adversarial graph | 间接 (高层语义) |
+
+#### 8.6.3 关键发现: 没有论文的 diversity = "单 policy 随机输出多个解"
+
+**所有论文的 diversity 范式**:
+```
+不同 condition → generator → 不同 trajectory
+   (diversity 来自 conditioning, 不是 sampling)
 ```
 
+**和 QD-RL 的结论一致**:
+```
+QD-RL: π(a|s, bd_descriptor) → 不同 bd → 不同 action
+  COLLIDE: generator(collision_type) → 不同 type → 不同 trajectory
+  我们:       policy(obs, bd_cell_g) → 不同 g → 不同 z
+```
+
+**MoG head with stochastic sampling 不是正确的 diversity 手段。** 正确的做法是:
+- 单 policy, bd descriptor 作为 conditioning input
+- 改变 conditioning → deterministic 输出不同 z
+- 不需要 K 个 stochastic 模式, 不需要 REINFORCE 推 μ
+
 ---
+
 
 ## 9. 方向修正 (2026-06-15, 更新于同日深夜)
 
@@ -417,33 +477,47 @@ Phase 3 (Inference):
 18. **R2SE**: Haochen Liu, Tianyu Li, Haohan Yang, et al. "Reinforced Refinement with Self-Aware Expansion for End-to-End Autonomous Driving." 2025.
     - arXiv: [2506.09800](https://arxiv.org/abs/2506.09800)
 
+### 安全关键多样性轨迹生成
+
+19. **BeyondDrive**: Junli Wang, Zhihua Hua, Xueyi Liu, et al. "Beyond Imitation: Learning Safe End-to-End Autonomous Driving from Hard Negatives." 2026.
+    - arXiv: [2605.19771](https://arxiv.org/abs/2605.19771)
+
+20. **OMEGA**: Shihao Li, Naisheng Ye, Tianyu Li, et al. "Optimization-Guided Diffusion for Interactive Scene Generation." 2025.
+    - arXiv: [2512.07661](https://arxiv.org/abs/2512.07661)
+
+21. **COLLIDE**: Pin-Lun Chen, Chi-Hsi Kung, Che-Han Chang, Wei-Chen Chiu, Yi-Ting Chen. "Controllable Collision Scenario Generation via Collision Pattern Prediction." 2025.
+    - arXiv: [2510.12206](https://arxiv.org/abs/2510.12206)
+
+22. **ScenGE**: Jiangfan Liu, Yongkang Guo, Fangzhi Zhong, et al. "Adversarial Generation and Collaborative Evolution of Safety-Critical Scenarios for Autonomous Vehicles." 2025.
+    - arXiv: [2508.14527](https://arxiv.org/abs/2508.14527)
+
 ### QD-RL (Quality Diversity Reinforcement Learning)
 
-24. **DCG-MAP-Elites**: Maxence Faldor, Félix Chalumeau, Manon Flageat, Antoine Cully. "MAP-Elites with Descriptor-Conditioned Gradients and Archive Distillation into a Single Policy." 2023.
+23. **DCG-MAP-Elites**: Maxence Faldor, Félix Chalumeau, Manon Flageat, Antoine Cully. "MAP-Elites with Descriptor-Conditioned Gradients and Archive Distillation into a Single Policy." 2023.
     - arXiv: [2303.03832](https://arxiv.org/abs/2303.03832)
 
-25. **Policy Diffusion**: Shashank Hegde, Sumeet Batra, K. R. Zentner, Gaurav S. Sukhatme. "Generating Behaviorally Diverse Policies with Latent Diffusion Models." 2023.
+24. **Policy Diffusion**: Shashank Hegde, Sumeet Batra, K. R. Zentner, Gaurav S. Sukhatme. "Generating Behaviorally Diverse Policies with Latent Diffusion Models." 2023.
     - arXiv: [2305.18738](https://arxiv.org/abs/2305.18738)
 
-26. **PPGA**: Sumeet Batra, Bryon Tjanaka, Matthew C. Fontaine, Aleksei Petrenko, Stefanos Nikolaidis, Gaurav Sukhatme. "Proximal Policy Gradient Arborescence for Quality Diversity Reinforcement Learning." ICLR 2024 Spotlight.
+25. **PPGA**: Sumeet Batra, Bryon Tjanaka, Matthew C. Fontaine, Aleksei Petrenko, Stefanos Nikolaidis, Gaurav Sukhatme. "Proximal Policy Gradient Arborescence for Quality Diversity Reinforcement Learning." ICLR 2024 Spotlight.
     - arXiv: [2305.13795](https://arxiv.org/abs/2305.13795)
 
-27. **AutoQD**: Saeed Hedayatian, Stefanos Nikolaidis. "AutoQD: Automatic Discovery of Diverse Behaviors with Quality-Diversity Optimization." ICLR 2026.
+26. **AutoQD**: Saeed Hedayatian, Stefanos Nikolaidis. "AutoQD: Automatic Discovery of Diverse Behaviors with Quality-Diversity Optimization." ICLR 2026.
     - arXiv: [2506.05634](https://arxiv.org/abs/2506.05634)
 
-28. **SV-QD-RL**: Lianrong Zuo, Peilan Xu, Yong Liu, Wenjian Luo. "Structure-Conditioned Actor-Critic Branches for Quality-Diversity Reinforcement Learning." 2026.
+27. **SV-QD-RL**: Lianrong Zuo, Peilan Xu, Yong Liu, Wenjian Luo. "Structure-Conditioned Actor-Critic Branches for Quality-Diversity Reinforcement Learning." 2026.
     - arXiv: [2606.08735](https://arxiv.org/abs/2606.08735)
 
 ### RL 基础方法
 
-29. **REINFORCE**: Ronald J. Williams. "Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning." Machine Learning, 1992.
+28. **REINFORCE**: Ronald J. Williams. "Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning." Machine Learning, 1992.
 
-30. **MDN**: Christopher M. Bishop. "Mixture Density Networks." 1994.
+29. **MDN**: Christopher M. Bishop. "Mixture Density Networks." 1994.
 
-31. **A3C**: Volodymyr Mnih et al. "Asynchronous Methods for Deep Reinforcement Learning." ICML 2016.
+30. **A3C**: Volodymyr Mnih et al. "Asynchronous Methods for Deep Reinforcement Learning." ICML 2016.
     - arXiv: [1602.01783](https://arxiv.org/abs/1602.01783)
 
-32. **Sutton & Barto**: "Reinforcement Learning: An Introduction." 1998.
+31. **Sutton & Barto**: "Reinforcement Learning: An Introduction." 1998.
 
-33. **PGA-ME / CMA-ME**: Matthew C. Fontaine, Stefanos Nikolaidis. "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space." GECCO 2020.
+32. **PGA-ME / CMA-ME**: Matthew C. Fontaine, Stefanos Nikolaidis. "Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space." GECCO 2020.
     - arXiv: [1912.02400](https://arxiv.org/abs/1912.02400)

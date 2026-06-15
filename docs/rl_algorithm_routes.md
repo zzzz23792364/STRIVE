@@ -211,6 +211,21 @@ Mutual info I(s; z_skill) 替代 external reward.
 
 **没有任何 QD-RL 论文使用 MoG head。** 多样性来自 descriptor conditioning (输入空间), 不是 sampling (输出空间)。
 
+### 附加发现: 安全关键领域多样性轨迹生成
+
+**问题: safety-critical 论文如何定义多样性?**
+
+| 论文 | 多样性定义 | 如何实现 |
+|------|-----------|---------|
+| **BeyondDrive** (2026) | 不同 failure mode 覆盖 | CFG + noise scaling |
+| **OMEGA** (2025) | 场景级物理+行为分布多样性 | Game-theoretic Nash eq in distribution space |
+| **COLLIDE** (2025) | 5 collision types | Collision pattern conditioning |
+| **ScenGE** (2025) | 不同威胁场景类型 | LLM + adversarial collaborator graph |
+
+**关键发现**: 所有论文的 diversity 范式 = `condition → generator → trajectory`。
+不存在 "单 policy 随机 sample 输出多个解"。Diversity = conditioning, not sampling.
+这与 QD-RL 的 descriptor-conditioned policy 完全一致。
+
 ---
 
 ## 9. 参考文献 (含 arXiv 链接)
@@ -248,22 +263,31 @@ Mutual info I(s; z_skill) 替代 external reward.
 | 17 | SceneDiffuser++: City-Scale Traffic Simulation via a Generative World Model | Tan et al. | CVPR 2025 | [2506.21976](https://arxiv.org/abs/2506.21976) |
 | 18 | Reinforced Refinement with Self-Aware Expansion (R2SE) | Liu et al. | 2025 | [2506.09800](https://arxiv.org/abs/2506.09800) |
 
+### 安全关键多样性轨迹生成
+
+| # | 标题 | 作者 | 会议/年份 | arXiv |
+|---|------|------|----------|-------|
+| 19 | Beyond Imitation: Learning Safe End-to-End AD from Hard Negatives (BeyondDrive) | Wang et al. | 2026 | [2605.19771](https://arxiv.org/abs/2605.19771) |
+| 20 | Optimization-Guided Diffusion for Interactive Scene Generation (OMEGA) | Li et al. | 2025 | [2512.07661](https://arxiv.org/abs/2512.07661) |
+| 21 | Controllable Collision Scenario Generation via Collision Pattern Prediction (COLLIDE) | Chen et al. | 2025 | [2510.12206](https://arxiv.org/abs/2510.12206) |
+| 22 | Adversarial Generation and Collaborative Evolution of Safety-Critical Scenarios (ScenGE) | Liu et al. | 2025 | [2508.14527](https://arxiv.org/abs/2508.14527) |
+
 ### RL 基础方法
 
 | # | 标题 | 作者 | 会议/年份 | 链接 |
 |---|------|------|----------|------|
-| 19 | Simple Statistical Gradient-Following Algorithms for Connectionist RL (REINFORCE) | Williams | 1992 | — |
-| 20 | Mixture Density Networks (MDN) | Bishop | 1994 | — |
-| 21 | Asynchronous Methods for Deep Reinforcement Learning (A3C) | Mnih et al. | ICML 2016 | [1602.01783](https://arxiv.org/abs/1602.01783) |
-| 22 | Reinforcement Learning: An Introduction | Sutton & Barto | 1998 | — |
-| 23 | Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space (CMA-ME) | Fontaine et al. | GECCO 2020 | [1912.02400](https://arxiv.org/abs/1912.02400) |
+| 23 | Simple Statistical Gradient-Following Algorithms for Connectionist RL (REINFORCE) | Williams | 1992 | — |
+| 24 | Mixture Density Networks (MDN) | Bishop | 1994 | — |
+| 25 | Asynchronous Methods for Deep Reinforcement Learning (A3C) | Mnih et al. | ICML 2016 | [1602.01783](https://arxiv.org/abs/1602.01783) |
+| 26 | Reinforcement Learning: An Introduction | Sutton & Barto | 1998 | — |
+| 27 | Covariance Matrix Adaptation for the Rapid Illumination of Behavior Space (CMA-ME) | Fontaine et al. | GECCO 2020 | [1912.02400](https://arxiv.org/abs/1912.02400) |
 
 ### QD-RL (Quality Diversity + RL)
 
 | # | 标题 | 作者 | 会议/年份 | arXiv |
 |---|------|------|----------|-------|
-| 24 | MAP-Elites with Descriptor-Conditioned Gradients and Archive Distillation into a Single Policy (DCG-ME) | Faldor et al. | 2023 | [2303.03832](https://arxiv.org/abs/2303.03832) |
-| 25 | Generating Behaviorally Diverse Policies with Latent Diffusion Models | Hegde et al. | 2023 | [2305.18738](https://arxiv.org/abs/2305.18738) |
-| 26 | Proximal Policy Gradient Arborescence for QD-RL (PPGA) | Batra et al. | ICLR 2024 Spotlight | [2305.13795](https://arxiv.org/abs/2305.13795) |
-| 27 | AutoQD: Automatic Discovery of Diverse Behaviors with QD Optimization | Hedayatian et al. | ICLR 2026 | [2506.05634](https://arxiv.org/abs/2506.05634) |
-| 28 | Structure-Conditioned Actor-Critic Branches for QD-RL (SV-QD-RL) | Zuo et al. | 2026 | [2606.08735](https://arxiv.org/abs/2606.08735) |
+| 28 | MAP-Elites with Descriptor-Conditioned Gradients and Archive Distillation into a Single Policy (DCG-ME) | Faldor et al. | 2023 | [2303.03832](https://arxiv.org/abs/2303.03832) |
+| 29 | Generating Behaviorally Diverse Policies with Latent Diffusion Models | Hegde et al. | 2023 | [2305.18738](https://arxiv.org/abs/2305.18738) |
+| 30 | Proximal Policy Gradient Arborescence for QD-RL (PPGA) | Batra et al. | ICLR 2024 Spotlight | [2305.13795](https://arxiv.org/abs/2305.13795) |
+| 31 | AutoQD: Automatic Discovery of Diverse Behaviors with QD Optimization | Hedayatian et al. | ICLR 2026 | [2506.05634](https://arxiv.org/abs/2506.05634) |
+| 32 | Structure-Conditioned Actor-Critic Branches for QD-RL (SV-QD-RL) | Zuo et al. | 2026 | [2606.08735](https://arxiv.org/abs/2606.08735) |
